@@ -36,7 +36,11 @@ export default function DashboardPage() {
       if (rec) {
         const years = availableYearsFrom(rec)
         const currentYear = new Date().getFullYear()
-        setSelectedYear(years.includes(currentYear) ? currentYear : years[years.length - 1] ?? currentYear)
+        setSelectedYear(prev =>
+          years.includes(prev) ? prev :
+          years.includes(currentYear) ? currentYear :
+          years[years.length - 1] ?? prev
+        )
       }
     }
     load()
@@ -64,6 +68,16 @@ export default function DashboardPage() {
       body: JSON.stringify({ maxAgilePercent }),
     })
     if (res.ok) setPrefs({ maxAgilePercent })
+  }
+
+  async function handleReset() {
+    await fetch('/api/data', { method: 'DELETE' })
+    setRecords(null)
+    setSelectedYear(new Date().getFullYear())
+    setUnknownTipologie([])
+    setPendingRows(null)
+    setPendingFilenames([])
+    setImportError(null)
   }
 
   const handleFiles = useCallback(async (files: File[]) => {
@@ -119,7 +133,11 @@ export default function DashboardPage() {
     if (rec) {
       const years = availableYearsFrom(rec)
       const currentYear = new Date().getFullYear()
-      setSelectedYear(years.includes(currentYear) ? currentYear : years[years.length - 1] ?? currentYear)
+      setSelectedYear(prev =>
+        years.includes(prev) ? prev :
+        years.includes(currentYear) ? currentYear :
+        years[years.length - 1] ?? prev
+      )
     }
     setLoading(false)
   }
@@ -146,6 +164,7 @@ export default function DashboardPage() {
             <SettingsPanel
               maxAgilePercent={prefs.maxAgilePercent}
               onSave={handleSavePrefs}
+              onReset={handleReset}
             />
           </div>
         </div>

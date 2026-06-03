@@ -6,11 +6,12 @@ import type { ExcelRow, Records, WorkDay, DayClassification } from '@/types/doma
 interface ImportBody {
   rows: ExcelRow[]
   overrides: Record<string, DayClassification>
+  dayOverrides: Record<string, DayClassification>
   filenames: string[]
 }
 
 export async function POST(req: Request) {
-  const { rows, overrides, filenames } = (await req.json()) as ImportBody
+  const { rows, overrides, dayOverrides, filenames } = (await req.json()) as ImportBody
 
   if (rows.length === 0) {
     return NextResponse.json({ error: 'Nessuna riga trovata nei file.' }, { status: 422 })
@@ -43,7 +44,10 @@ export async function POST(req: Request) {
   const overrideMap = new Map(
     Object.entries(overrides).map(([k, v]) => [k, v as DayClassification])
   )
-  const newDays = classifyDays(rows, overrideMap)
+  const dayOverrideMap = new Map(
+    Object.entries(dayOverrides ?? {}).map(([k, v]) => [k, v as DayClassification])
+  )
+  const { days: newDays } = classifyDays(rows, overrideMap, dayOverrideMap)
   const monthsInImport = new Set(newDays.map(d => d.date.slice(0, 7)))
 
   const prevDays: WorkDay[] = existing?.days ?? []

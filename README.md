@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# links-presence-calculator
 
-## Getting Started
+Applicazione web locale per calcolare automaticamente la percentuale di lavoro agile a partire dagli export Excel generati dal sistema LINKS.
 
-First, run the development server:
+## Cosa fa
+
+Importa uno o più file `.xlsx` o `.xls` esportati da LINKS e calcola per ogni anno:
+
+- **Giornate Agile** — giorni con almeno una riga `Sede = LAVORO AGILE`
+- **Giornate Lavorative** — giorni con sede fisica (incluso "Presso cliente") e tipologia `STANDARD` o `TRASFERTA`
+- **Percentuale Agile** — `Agile / Totali × 100`
+- **Proiezione** — quanti giorni in ufficio mancano per rispettare il limite massimo impostato
+
+Le righe con tipologia `PERMESSO`, `MALATTIA`, `FERIE`, `STRAORDINARIO` o `INDENNITA TRASFERTA` sono escluse dal conteggio.
+
+Se un giorno presenta sia righe agile sia righe in presenza (conflitto), l'app sospende l'elaborazione e chiede all'utente come classificarlo.
+
+Stessa cosa per tipologie non riconosciute: elaborazione sospesa, il sistema mostra valore, conteggio e date coinvolte e chiede come trattarle.
+
+Tutti i dati vengono salvati in JSON locale (`data/`). Nessun database, nessun servizio esterno, nessun dato inviato in cloud.
+
+Le colonne `Progetto`, `Issue Jira`, `Data Inizio Progetto`, `Cliente` e `Responsabile del Contratto` presenti nei file Excel vengono ignorate automaticamente: non vengono lette, non vengono salvate, non compaiono mai nell'interfaccia.
+
+## Avvio
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Apri [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Comandi
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run dev        # server di sviluppo
+npm run build      # build di produzione
+npm run lint       # ESLint
+npm test           # unit test (Jest)
+npm run test:watch # Jest in watch mode
+```
 
-## Learn More
+## Stack
 
-To learn more about Next.js, take a look at the following resources:
+- Next.js (App Router) + TypeScript
+- Tailwind CSS + shadcn/ui
+- `xlsx` per la lettura dei file Excel
+- JSON locale per la persistenza
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Note sui file LINKS
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+LINKS esporta file `.xls` in formato HTML (non binario). La libreria `xlsx` interpreta le date testuali `DD/MM/YYYY` come formato americano `MM/DD/YYYY`, causando errori di mese. Il parser gestisce questo caso rilevando i file HTML e leggendo il testo delle celle direttamente, senza affidarsi alla conversione numerica delle date.

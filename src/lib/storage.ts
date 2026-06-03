@@ -35,3 +35,11 @@ export function writePrefs(prefs: Prefs): void {
   ensureDataDir()
   fs.writeFileSync(PREFS_PATH, JSON.stringify(prefs, null, 2), 'utf-8')
 }
+
+export function deleteRecords(): void {
+  try {
+    fs.unlinkSync(RECORDS_PATH)
+  } catch {
+    // file already absent — no-op
+  }
+}

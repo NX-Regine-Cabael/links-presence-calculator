@@ -41,9 +41,37 @@ describe('classifyDays', () => {
     expect(days[0].classification).toBe('esclusa')
   })
 
+  test('only MALATTIA rows → esclusa', () => {
+    const days = classifyDays([row({ tipologia: 'MALATTIA' })])
+    expect(days[0].classification).toBe('esclusa')
+  })
+
+  test('only FERIE rows → esclusa', () => {
+    const days = classifyDays([row({ tipologia: 'FERIE' })])
+    expect(days[0].classification).toBe('esclusa')
+  })
+
+  test('only STRAORDINARIO rows → esclusa', () => {
+    const days = classifyDays([row({ tipologia: 'STRAORDINARIO', sede: 'UFFICIO' })])
+    expect(days[0].classification).toBe('esclusa')
+  })
+
+  test('only INDENNITA TRASFERTA rows → esclusa', () => {
+    const days = classifyDays([row({ tipologia: 'INDENNITA TRASFERTA', sede: '' })])
+    expect(days[0].classification).toBe('esclusa')
+  })
+
   test('PERMESSO + STANDARD on same day → lavorativa (PERMESSO excluded first)', () => {
     const days = classifyDays([
       row({ tipologia: 'PERMESSO', sede: 'UFFICIO' }),
+      row({ tipologia: 'STANDARD', sede: 'UFFICIO' }),
+    ])
+    expect(days[0].classification).toBe('lavorativa')
+  })
+
+  test('MALATTIA + STANDARD on same day → lavorativa', () => {
+    const days = classifyDays([
+      row({ tipologia: 'MALATTIA', sede: '' }),
       row({ tipologia: 'STANDARD', sede: 'UFFICIO' }),
     ])
     expect(days[0].classification).toBe('lavorativa')

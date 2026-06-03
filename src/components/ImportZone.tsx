@@ -15,7 +15,7 @@ export function ImportZone({ onFiles, loading = false }: ImportZoneProps) {
     e.preventDefault()
     setDragging(false)
     const files = Array.from(e.dataTransfer.files).filter(f =>
-      f.name.endsWith('.xlsx')
+      f.name.endsWith('.xlsx') || f.name.endsWith('.xls')
     )
     if (files.length > 0) onFiles(files)
   }
@@ -44,21 +44,32 @@ export function ImportZone({ onFiles, loading = false }: ImportZoneProps) {
       <input
         ref={inputRef}
         type="file"
-        accept=".xlsx"
+        accept=".xlsx,.xls"
         multiple
         className="hidden"
         onChange={handleChange}
       />
-      <p className="text-slate-400 text-sm">
+      <div className="text-slate-400 text-sm flex items-center justify-center gap-2">
         {loading ? (
-          'Elaborazione in corso…'
+          <>
+            <svg
+              className="animate-spin h-4 w-4 text-sky-400 shrink-0"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            <span className="text-sky-400 font-semibold">Elaborazione in corso…</span>
+          </>
         ) : (
           <>
             <span className="text-sky-400 font-semibold">+ Carica file Excel</span>
-            {' — '}trascina qui uno o più <code className="text-slate-300">.xlsx</code> oppure clicca
+            {' — '}trascina qui uno o più <code className="text-slate-300">.xlsx</code> / <code className="text-slate-300">.xls</code> oppure clicca
           </>
         )}
-      </p>
+      </div>
     </div>
   )
 }

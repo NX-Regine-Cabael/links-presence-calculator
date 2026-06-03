@@ -56,7 +56,9 @@ describe('parseExcelBuffers', () => {
   })
 
   test('known tipologie produce no unknowns', () => {
-    const rows = ['PERMESSO', 'STANDARD', 'TRASFERTA'].map(t => ({ ...baseRow, 'Tipologia': t }))
+    const rows = [
+      'PERMESSO', 'STANDARD', 'TRASFERTA', 'MALATTIA', 'FERIE', 'STRAORDINARIO', 'INDENNITA TRASFERTA',
+    ].map(t => ({ ...baseRow, 'Tipologia': t }))
     const { unknownTipologie } = parseExcelBuffers([makeBuffer(rows)])
     expect(unknownTipologie).toHaveLength(0)
   })
