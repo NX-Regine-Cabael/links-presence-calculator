@@ -47,7 +47,7 @@ export function parseExcelBuffers(buffers: ArrayBuffer[]): ParseResult {
         if (field === 'date') {
           row.date = parseDate(val)
         } else {
-          ;(row as Record<string, string>)[field] = String(val ?? '').trim()
+          ;(row as unknown as Record<string, string>)[field] = String(val ?? '').trim()
         }
       }
       allRows.push(row)

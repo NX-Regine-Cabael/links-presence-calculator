@@ -1,26 +1,86 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Dark theme — project color palette (always dark, no light mode) */
+:root {
+  /* background: #0f172a = hsl(222, 47%, 11%) */
+  --background: oklch(0.18 0.04 250);
+  /* foreground: slate-100 ≈ hsl(210, 40%, 98%) */
+  --foreground: oklch(0.98 0.004 250);
+  /* card: #1e293b = hsl(217, 33%, 17%) */
+  --card: oklch(0.24 0.035 250);
+  --card-foreground: oklch(0.98 0.004 250);
+  --popover: oklch(0.24 0.035 250);
+  --popover-foreground: oklch(0.98 0.004 250);
+  /* primary: hsl(199, 89%, 48%) — sky-500 */
+  --primary: oklch(0.68 0.18 215);
+  --primary-foreground: oklch(0.18 0.04 250);
+  /* secondary / muted: hsl(217, 33%, 25%) */
+  --secondary: oklch(0.30 0.035 250);
+  --secondary-foreground: oklch(0.98 0.004 250);
+  --muted: oklch(0.30 0.035 250);
+  /* muted-foreground: hsl(215, 20%, 65%) */
+  --muted-foreground: oklch(0.65 0.02 250);
+  --accent: oklch(0.30 0.035 250);
+  --accent-foreground: oklch(0.98 0.004 250);
+  /* destructive: hsl(0, 84%, 60%) — red */
+  --destructive: oklch(0.63 0.24 27);
+  /* border / input: hsl(217, 33%, 25%) */
+  --border: oklch(0.30 0.035 250);
+  --input: oklch(0.30 0.035 250);
+  --ring: oklch(0.68 0.18 215);
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
-}
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0f172a;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 3px;
+  }
 }
