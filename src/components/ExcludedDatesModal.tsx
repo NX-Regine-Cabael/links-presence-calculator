@@ -62,6 +62,7 @@ export function ExcludedDatesModal({ onSaved }: Props) {
   const [open, setOpen] = useState(false)
   const [rows, setRows] = useState<DateRow[]>([newRow()])
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const xlsxInputRef = useRef<HTMLInputElement>(null)
 
   const minDate = (() => {
@@ -115,15 +116,23 @@ export function ExcludedDatesModal({ onSaved }: Props) {
 
   async function handleConfirm() {
     setSaving(true)
+    setSaveError(null)
     const dates = expandToWorkingDays(rows)
     try {
-      await fetch('/api/excluded-dates', {
+      const res = await fetch('/api/excluded-dates', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dates),
       })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        setSaveError(body?.error ?? 'Errore durante il salvataggio.')
+        return
+      }
       onSaved(dates)
       setOpen(false)
+    } catch {
+      setSaveError('Errore di rete. Riprova.')
     } finally {
       setSaving(false)
     }
@@ -231,6 +240,10 @@ export function ExcludedDatesModal({ onSaved }: Props) {
             Aggiungi riga
           </Button>
         </div>
+
+        {saveError && (
+          <p className="text-xs text-destructive mt-1">{saveError}</p>
+        )}
 
         <DialogFooter className="mt-2">
           <Button variant="outline" onClick={() => setOpen(false)}>Annulla</Button>
