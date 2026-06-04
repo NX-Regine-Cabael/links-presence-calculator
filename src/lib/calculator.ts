@@ -37,11 +37,12 @@ export function computeYearStats(days: WorkDay[], year: number): YearStats {
 export function computeProjection(
   stats: YearStats,
   maxAgilePercent: number,
-  today: Date = new Date()
+  today: Date = new Date(),
+  excludedDates?: string[]
 ): Projection | null {
   if (stats.percent <= maxAgilePercent) return null
 
-  const remainingWorkDays = getRemainingWorkingDays(today, stats.year)
+  const remainingWorkDays = getRemainingWorkingDays(today, stats.year, excludedDates)
   if (remainingWorkDays === 0) return null
 
   const totalExpected = stats.total + remainingWorkDays

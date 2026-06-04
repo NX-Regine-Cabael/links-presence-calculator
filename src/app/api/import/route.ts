@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { classifyDays } from '@/lib/classifier'
-import { readRecords, writeRecords } from '@/lib/storage'
+import { readRecords, writeRecords, getExcludedDates, setExcludedDates } from '@/lib/storage'
 import type { ExcelRow, Records, WorkDay, DayClassification } from '@/types/domain'
 
 interface ImportBody {
@@ -70,5 +70,16 @@ export async function POST(req: Request) {
   }
 
   writeRecords(records)
+
+  // Feature 5: merge future 'esclusa' days into excludedDates in prefs
+  const today = new Date().toISOString().slice(0, 10)
+  const futureExcluded = newDays
+    .filter(d => d.classification === 'esclusa' && d.date > today)
+    .map(d => d.date)
+  if (futureExcluded.length > 0) {
+    const merged = Array.from(new Set([...getExcludedDates(), ...futureExcluded])).sort()
+    setExcludedDates(merged)
+  }
+
   return NextResponse.json({ ok: true, imported: newDays.length })
 }

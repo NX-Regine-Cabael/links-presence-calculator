@@ -36,6 +36,14 @@ export function writePrefs(prefs: Prefs): void {
   fs.writeFileSync(PREFS_PATH, JSON.stringify(prefs, null, 2), 'utf-8')
 }
 
+export function getExcludedDates(): string[] {
+  return readPrefs().excludedDates ?? []
+}
+
+export function setExcludedDates(dates: string[]): void {
+  writePrefs({ ...readPrefs(), excludedDates: dates })
+}
+
 export function deleteRecords(): void {
   try {
     fs.unlinkSync(RECORDS_PATH)

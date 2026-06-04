@@ -63,6 +63,33 @@ describe('computeProjection', () => {
     expect(computeProjection(stats, 50, new Date('2027-01-05T12:00:00'))).toBeNull()
   })
 
+  test('excludedDates: excluded days reduce remainingWorkDays in projection', () => {
+    // 3 agile days → 100% > 50% limit; Dec 30: 1 remaining day (Dec 31)
+    // Exclude Dec 31 → 0 remaining → null
+    const days = [
+      day('2026-01-02', 'agile'),
+      day('2026-01-05', 'agile'),
+      day('2026-01-06', 'agile'),
+    ]
+    const stats = computeYearStats(days, 2026)
+    const projection = computeProjection(stats, 50, new Date('2026-12-30T12:00:00'), ['2026-12-31'])
+    expect(projection).toBeNull()
+  })
+
+  test('excludedDates: partial exclusion changes remainingWorkDays', () => {
+    // Dec 29 → 2 remaining (Dec 30, Dec 31); exclude Dec 30 → 1 remaining
+    const days = [
+      day('2026-01-02', 'agile'),
+      day('2026-01-05', 'agile'),
+      day('2026-01-06', 'agile'),
+    ]
+    const stats = computeYearStats(days, 2026)
+    const projBase = computeProjection(stats, 50, new Date('2026-12-29T12:00:00'))
+    const projExcl = computeProjection(stats, 50, new Date('2026-12-29T12:00:00'), ['2026-12-30'])
+    expect(projBase!.remainingWorkDays).toBe(2)
+    expect(projExcl!.remainingWorkDays).toBe(1)
+  })
+
   test('returns projection when percent exceeds limit', () => {
     // 3 agile, 0 lavorativa in 2026 so far → 100% agile > 50% limit
     const days = [

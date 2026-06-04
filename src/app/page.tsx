@@ -8,6 +8,7 @@ import { MonthlyChart } from '@/components/MonthlyChart'
 import { ImportZone } from '@/components/ImportZone'
 import { SettingsPanel } from '@/components/SettingsPanel'
 import { AnomalyBanner } from '@/components/AnomalyBanner'
+import { ExcludedDatesModal } from '@/components/ExcludedDatesModal'
 import { parseExcelBuffers } from '@/lib/excel-parser'
 import { computeYearStats, computeProjection } from '@/lib/calculator'
 import type { Records, Prefs, UnknownTipologia, DayClassification } from '@/types/domain'
@@ -19,20 +20,24 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(false)
   const [importError, setImportError] = useState<string | null>(null)
 
+  const [excludedDates, setExcludedDates] = useState<string[]>([])
   const [pendingRows, setPendingRows] = useState<ReturnType<typeof parseExcelBuffers>['rows'] | null>(null)
   const [pendingFilenames, setPendingFilenames] = useState<string[]>([])
   const [unknownTipologie, setUnknownTipologie] = useState<UnknownTipologia[]>([])
 
   useEffect(() => {
     async function load() {
-      const [recRes, prefRes] = await Promise.all([
+      const [recRes, prefRes, exclRes] = await Promise.all([
         fetch('/api/data'),
         fetch('/api/prefs'),
+        fetch('/api/excluded-dates'),
       ])
       const rec: Records | null = await recRes.json()
       const pref: Prefs = await prefRes.json()
+      const excl: string[] = await exclRes.json()
       setRecords(rec)
       setPrefs(pref)
+      setExcludedDates(excl)
       if (rec) {
         const years = availableYearsFrom(rec)
         const currentYear = new Date().getFullYear()
@@ -57,8 +62,8 @@ export default function DashboardPage() {
   const isCurrentYear = selectedYear === currentYear
 
   const projection = useMemo(
-    () => computeProjection(yearStats, prefs.maxAgilePercent),
-    [yearStats, prefs.maxAgilePercent]
+    () => computeProjection(yearStats, prefs.maxAgilePercent, new Date(), excludedDates),
+    [yearStats, prefs.maxAgilePercent, excludedDates]
   )
 
   async function handleSavePrefs(maxAgilePercent: number) {
@@ -127,9 +132,14 @@ export default function DashboardPage() {
       setLoading(false)
       return
     }
-    const recRes = await fetch('/api/data')
+    const [recRes, exclRes] = await Promise.all([
+      fetch('/api/data'),
+      fetch('/api/excluded-dates'),
+    ])
     const rec: Records | null = await recRes.json()
+    const excl: string[] = await exclRes.json()
     setRecords(rec)
+    setExcludedDates(excl)
     if (rec) {
       const years = availableYearsFrom(rec)
       const currentYear = new Date().getFullYear()
@@ -161,6 +171,7 @@ export default function DashboardPage() {
             )}
           </div>
           <div className="flex items-center gap-3">
+            <ExcludedDatesModal onSaved={setExcludedDates} />
             <SettingsPanel
               maxAgilePercent={prefs.maxAgilePercent}
               onSave={handleSavePrefs}

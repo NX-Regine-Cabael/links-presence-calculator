@@ -24,6 +24,7 @@ export interface Records {
 
 export interface Prefs {
   maxAgilePercent: number  // 0–100
+  excludedDates?: string[] // YYYY-MM-DD working days excluded from remaining count
 }
 
 export interface ExcelRow {

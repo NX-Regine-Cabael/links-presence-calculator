@@ -64,4 +64,36 @@ describe('getRemainingWorkingDays', () => {
     const today = new Date('2026-12-31T12:00:00')
     expect(getRemainingWorkingDays(today, 2026)).toBe(0)
   })
+
+  test('excludedDates: one excluded working day reduces count by 1', () => {
+    // Dec 29 (Tue): remaining = Dec 30 (Wed) + Dec 31 (Thu) = 2
+    const today = new Date('2026-12-29T12:00:00')
+    expect(getRemainingWorkingDays(today, 2026)).toBe(2)
+    expect(getRemainingWorkingDays(today, 2026, ['2026-12-30'])).toBe(1)
+  })
+
+  test('excludedDates: both remaining days excluded → 0', () => {
+    const today = new Date('2026-12-29T12:00:00')
+    expect(getRemainingWorkingDays(today, 2026, ['2026-12-30', '2026-12-31'])).toBe(0)
+  })
+
+  test('excludedDates: excluding a weekend has no effect (already not counted)', () => {
+    const today = new Date('2026-12-29T12:00:00')
+    expect(getRemainingWorkingDays(today, 2026, ['2026-12-27'])).toBe(2) // Sun
+  })
+
+  test('excludedDates: empty array has no effect', () => {
+    const today = new Date('2026-12-30T12:00:00')
+    expect(getRemainingWorkingDays(today, 2026, [])).toBe(1)
+  })
+
+  test('excludedDates: date from a different year has no effect', () => {
+    const today = new Date('2026-12-30T12:00:00')
+    expect(getRemainingWorkingDays(today, 2026, ['2025-12-31'])).toBe(1)
+  })
+
+  test('excludedDates: undefined behaves the same as no exclusions', () => {
+    const today = new Date('2026-12-30T12:00:00')
+    expect(getRemainingWorkingDays(today, 2026, undefined)).toBe(1)
+  })
 })

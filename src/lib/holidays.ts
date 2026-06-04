@@ -54,15 +54,17 @@ export function isWorkingDay(dateStr: string, holidays: Set<string>): boolean {
   return dow !== 0 && dow !== 6 && !holidays.has(dateStr)
 }
 
-export function getRemainingWorkingDays(fromDate: Date, year: number): number {
+export function getRemainingWorkingDays(fromDate: Date, year: number, excludedDates?: string[]): number {
   const holidays = getItalianHolidays(year)
+  const excluded = new Set(excludedDates ?? [])
   const endOfYear = new Date(year, 11, 31, 12, 0, 0)
   let count = 0
   const current = new Date(fromDate)
   current.setDate(current.getDate() + 1)
   current.setHours(12, 0, 0, 0)
   while (current <= endOfYear) {
-    if (isWorkingDay(toISO(current), holidays)) count++
+    const iso = toISO(current)
+    if (isWorkingDay(iso, holidays) && !excluded.has(iso)) count++
     current.setDate(current.getDate() + 1)
   }
   return count
