@@ -1,0 +1,85 @@
+import { NextResponse } from 'next/server'
+import { classifyDays } from '@/lib/classifier'
+import { readRecords, writeRecords, getExcludedDates, setExcludedDates } from '@/lib/storage'
+import type { ExcelRow, Records, WorkDay, DayClassification } from '@/types/domain'
+
+interface ImportBody {
+  rows: ExcelRow[]
+  overrides: Record<string, DayClassification>
+  dayOverrides: Record<string, DayClassification>
+  filenames: string[]
+}
+
+export async function POST(req: Request) {
+  const { rows, overrides, dayOverrides, filenames } = (await req.json()) as ImportBody
+
+  if (rows.length === 0) {
+    return NextResponse.json({ error: 'Nessuna riga trovata nei file.' }, { status: 422 })
+  }
+
+  const userIds = new Set(rows.map(r => r.userId))
+  const names = new Set(rows.map(r => r.name))
+  if (userIds.size > 1 || names.size > 1) {
+    return NextResponse.json(
+      {
+        error:
+          'Impossibile elaborare i file selezionati. Sono presenti dati appartenenti a utenti differenti.',
+      },
+      { status: 422 }
+    )
+  }
+
+  const existing = readRecords()
+  const incomingUserId = Array.from(userIds)[0]
+  if (existing && existing.employee.userId !== incomingUserId) {
+    return NextResponse.json(
+      {
+        error:
+          'Impossibile elaborare i file selezionati. Sono presenti dati appartenenti a utenti differenti.',
+      },
+      { status: 422 }
+    )
+  }
+
+  const overrideMap = new Map(
+    Object.entries(overrides).map(([k, v]) => [k, v as DayClassification])
+  )
+  const dayOverrideMap = new Map(
+    Object.entries(dayOverrides ?? {}).map(([k, v]) => [k, v as DayClassification])
+  )
+  const { days: newDays } = classifyDays(rows, overrideMap, dayOverrideMap)
+  const monthsInImport = new Set(newDays.map(d => d.date.slice(0, 7)))
+
+  const prevDays: WorkDay[] = existing?.days ?? []
+  const mergedDays = [
+    ...prevDays.filter(d => !monthsInImport.has(d.date.slice(0, 7))),
+    ...newDays,
+  ].sort((a, b) => a.date.localeCompare(b.date))
+
+  const now = new Date().toISOString()
+  const newImports = filenames.map(filename => ({
+    importedAt: now,
+    filename,
+    month: Array.from(monthsInImport).sort().join(', '),
+  }))
+
+  const records: Records = {
+    employee: { userId: incomingUserId, name: Array.from(names)[0] },
+    imports: [...(existing?.imports ?? []), ...newImports],
+    days: mergedDays,
+  }
+
+  writeRecords(records)
+
+  // Feature 5: merge future 'esclusa' days into excludedDates in prefs
+  const today = new Date().toISOString().slice(0, 10)
+  const futureExcluded = newDays
+    .filter(d => d.classification === 'esclusa' && d.date > today)
+    .map(d => d.date)
+  if (futureExcluded.length > 0) {
+    const merged = Array.from(new Set([...getExcludedDates(), ...futureExcluded])).sort()
+    setExcludedDates(merged)
+  }
+
+  return NextResponse.json({ ok: true, imported: newDays.length })
+}
