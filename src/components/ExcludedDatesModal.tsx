@@ -62,7 +62,6 @@ export function ExcludedDatesModal({ onSaved }: Props) {
   const [open, setOpen] = useState(false)
   const [rows, setRows] = useState<DateRow[]>([newRow()])
   const [saving, setSaving] = useState(false)
-  const loadedRef = useRef(false)
   const xlsxInputRef = useRef<HTMLInputElement>(null)
 
   const minDate = (() => {
@@ -73,8 +72,6 @@ export function ExcludedDatesModal({ onSaved }: Props) {
 
   useEffect(() => {
     if (!open) return
-    if (loadedRef.current) return
-    loadedRef.current = true
 
     fetch('/api/excluded-dates')
       .then(r => r.json())
@@ -84,7 +81,6 @@ export function ExcludedDatesModal({ onSaved }: Props) {
 
   function handleOpenChange(v: boolean) {
     setOpen(v)
-    if (!v) loadedRef.current = false
   }
 
   function addRow() {
